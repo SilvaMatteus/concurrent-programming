@@ -1,0 +1,7 @@
+concurrent-programming
+======================
+
+Concurrent programming exercises.
+
+/synchronized-exercise
+  - Exercise about the use of the synchronized keyword in Java.
