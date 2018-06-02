@@ -242,7 +242,7 @@ public class NanoHTTPd {
             }
 
         // Change port if requested
-        int port = 80;
+        int port = 8000;
         if (args.length > 0 && lopt != 0)
             port = Integer.parseInt(args[0]);
 
