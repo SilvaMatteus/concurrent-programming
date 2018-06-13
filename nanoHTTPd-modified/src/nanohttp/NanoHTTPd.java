@@ -1,7 +1,11 @@
+package nanohttp;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,15 +16,14 @@ import java.net.Socket;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Vector;
 import java.util.Hashtable;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
+import java.util.Vector;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
@@ -187,6 +190,8 @@ public class NanoHTTPd {
             MIME_HTML = "text/html",
             MIME_DEFAULT_BINARY = "application/octet-stream",
             MIME_XML = "text/xml";
+    
+    public static final BlockingQueue<Socket> SOCKET_QUEUE = new SynchronousQueue<Socket>();
 
     // ==================================================
     // Socket & server code
@@ -202,14 +207,21 @@ public class NanoHTTPd {
         myThread = new Thread(new Runnable() {
             public void run() {
                 try {
-                    while (true)
-                        new HTTPSession(myServerSocket.accept());
+                    while (true) {
+                    	Socket s = myServerSocket.accept();
+                    	SOCKET_QUEUE.offer(s);
+                    }
                 } catch (IOException ioe) {
                 }
             }
         });
         myThread.setDaemon(true);
         myThread.start();
+        
+        SocketConsumer sc = new SocketConsumer(this, SOCKET_QUEUE);
+        Thread SocketConsumerT1 = new Thread(sc);
+        SocketConsumerT1.setDaemon(true);
+        SocketConsumerT1.start();
     }
 
     /**
@@ -268,15 +280,13 @@ public class NanoHTTPd {
      * Handles one session, i.e. parses the HTTP request
      * and returns the response.
      */
-    private class HTTPSession implements Runnable {
+    protected class HTTPSession {
         public HTTPSession(Socket s) {
             mySocket = s;
-            Thread t = new Thread(this);
-            t.setDaemon(true);
-            t.start();
+            processSocket();
         }
 
-        public void run() {
+        public void processSocket() {
             try {
                 InputStream is = mySocket.getInputStream();
                 if (is == null) return;
@@ -463,7 +473,7 @@ public class NanoHTTPd {
                 sendError(HTTP_INTERNALERROR, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
             }
         }
-
+        
         /**
          * Decodes the Multipart Body data and put it
          * into java Properties' key - value pairs.

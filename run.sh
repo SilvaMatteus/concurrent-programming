@@ -6,7 +6,7 @@ case $1 in
           then
              echo "Usage: ./run.sh start [port]"
         fi
-        java -classpath nanoHTTPd-modified/bin NanoHTTPd $2 &
+        java -classpath nanoHTTPd-modified/bin nanohttp.NanoHTTPd $2 &
         ;;
     *) echo "Option $1 not recognized." ;;
 esac
