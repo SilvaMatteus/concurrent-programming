@@ -218,10 +218,12 @@ public class NanoHTTPd {
         myThread.setDaemon(true);
         myThread.start();
         
-        SocketConsumer sc = new SocketConsumer(this, SOCKET_QUEUE);
-        Thread SocketConsumerT1 = new Thread(sc);
-        SocketConsumerT1.setDaemon(true);
-        SocketConsumerT1.start();
+        for (int i = 0; i < 1; i++) {
+            SocketConsumer sc = new SocketConsumer(this, SOCKET_QUEUE);
+            Thread SocketConsumerT1 = new Thread(sc);
+            SocketConsumerT1.setDaemon(true);
+            SocketConsumerT1.start();
+        }
     }
 
     /**
