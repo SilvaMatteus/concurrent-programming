@@ -23,7 +23,7 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.Vector;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * A simple, tiny, nicely embeddable HTTP 1.0 server in Java
@@ -191,7 +191,7 @@ public class NanoHTTPd {
             MIME_DEFAULT_BINARY = "application/octet-stream",
             MIME_XML = "text/xml";
     
-    public static final BlockingQueue<Socket> SOCKET_QUEUE = new SynchronousQueue<Socket>();
+    public static final BlockingQueue<Socket> SOCKET_QUEUE = new LinkedBlockingQueue<Socket>();
 
     // ==================================================
     // Socket & server code
@@ -209,16 +209,19 @@ public class NanoHTTPd {
                 try {
                     while (true) {
                     	Socket s = myServerSocket.accept();
-                    	SOCKET_QUEUE.offer(s);
+                    	SOCKET_QUEUE.put(s);
                     }
                 } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         });
         myThread.setDaemon(true);
         myThread.start();
         
-        for (int i = 0; i < 1; i++) {
+        for (int i = 0; i < 5; i++) {
             SocketConsumer sc = new SocketConsumer(this, SOCKET_QUEUE);
             Thread SocketConsumerT1 = new Thread(sc);
             SocketConsumerT1.setDaemon(true);

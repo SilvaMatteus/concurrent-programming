@@ -9,9 +9,10 @@ sleep 5
 
 # Configure Python Virtual Environment
 if [ ! -d "venv" ]; then
-    virtualenv .env
+    virtualenv venv
 fi
-source .env/bin/activate
+source venv/bin/activate
+pip install requests
 
 pids=()
 
